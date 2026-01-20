@@ -1,0 +1,100 @@
+2025/11/6
+V1.0
+
+该版本主要用motion文件完成机器人获取球的位置并通过前进左移右移完成踢球
+
+主要问题为
+1、稳定性不足，在运行踢球左转右转时容易跌倒，需修改motion文件内部的数据 (V1.1 已通过修改3解决)
+2、未完成摔倒后站起的功能，需修改motion文件内部的数据  (V1.1 已通过修改3解决)
+3、状态判断不准确，在动作进行过程中不应该持续判断，需完善逻辑 (V1.1 已通过修改逻辑解决)
+4、最佳击球点的位置判断逻辑需更准确，需完善逻辑
+5、参数需要重新设置，优化参数
+6、motion中设置的角度和Nao6的限制不符，超出机器人关节限制，可能是影响1.2的主要原因，需确认 （V1.1 已通过修改motion数据解决）
+
+需完成任务
+1、更新防守者（紧急）以及守门员的代码
+2、增加旋转，让机器人自动调整方向
+3、更新前进motion，让机器人在距离球很远时选择更合适的motion文件
+
+2025/11/6 
+V1.0 
+ 
+This version mainly uses motion files to complete the robot's acquisition of the ball's position and completes kicking by moving forward, left, and right 
+ 
+The main issue is 
+1. Lack of stability makes it easy to fall when playing left or right turns while kicking a ball. It is necessary to modify the data inside the motion file 
+2. The function of standing up after falling has not been completed, and the data inside the motion file needs to be modified 
+3. Inaccurate state judgment, continuous judgment should not be made during the action process, and logic needs to be improved 
+4. The logic for determining the location of the best hitting point needs to be more accurate and improved 
+5. Parameters need to be reset and optimized 
+6. The angle set in motion does not match the limit of Nao6, exceeding the joint limit of the robot. This may be the main reason affecting 1.2 and needs to be confirmed
+ 
+Task to be completed 
+1. Update the codes for the defender (emergency) and goalkeeper 
+2. Increase rotation to allow the robot to automatically adjust direction 
+3. Update the forward motion to allow the robot to select a more suitable motion file when it is far away from the ball
+
+
+2025/11/11
+V1.1
+
+修复了上版本遗留的bug，机器人运行更加稳定
+修复了V1.0 中Q1、2、3、6
+
+主要问题为
+1、虽然修复了机器人无法站起的问题，但是motion函数仍有问题，需进一步修改，站起容易回弹不稳定，疑似原motion文件动作过快导致，起立最后一帧动作需和forward匹配，两者需要规划中间值
+该问题可能在设计过度motion文件时解决，非致命问题
+
+
+2026/01/12
+加入了平滑窗口计算坐标
+修改了最佳击球点参数
+重构了管理员代码，管理员可以实现更多功能，如踢球距离测试
+加入了计分系统，在球到达指定位置时还原机器人位置并计分
+
+击球点仍有问题
+
+2026/01/16
+去掉了平滑窗口计算坐标，影响左右行走判断，后期可能会再加上
+优化了左右旋转的代码
+重构了find_state代码，用state_tree代替，更新了击球手整体逻辑，用来应对球场上各种情况，新增了很多相关函数和flag
+更改了kick的motion文件，击球更远了
+
+主要问题
+部分特殊点无法准确找到踢球脚
+选择球门的代码太过生硬，需要加惩罚项找到最好的击球点
+
+
+2026/01/17
+这个版本我们来做点有趣的事情
+增加了监督学习模块，记录每个角度的dxdy，解决斜角踢球
+新增了监督学习模块
+优化了部分代码
+
+问题：没有解决避障
+代码还是ifelse，没有真正实现状态树
+下一个版本进行整体逻辑重置
+
+2026/01/18
+增加了避障功能
+整理了logicLib中的各种参数
+新增了config来管理常数
+新增了一种起立动作
+修改了版本日期还活在去年的bug
+
+问题：
+动态规划不够智能
+起立的动作会超出关节上限，需要修改
+其他py文件仍然很乱需要整理
+监督学习的数据不够强大
+没有进行逻辑重置，现在的逻辑也不难管理，重置成本太大，真实的逻辑比想象中的难写
+
+2026/01/19
+更新了defender的逻辑
+
+问题：
+需更新动态规划       01/20
+需更新更多踢球数据    01/21 
+需调整站起来的motion文件的稳定性  01/23
+需调整back的motion文件，使其更连贯 01/23
+需整理defender初始化相关代码 01/24

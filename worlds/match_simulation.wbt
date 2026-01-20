@@ -1,0 +1,230 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/robotstadium/protos/RobotstadiumSoccerField.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/balls/protos/RobocupSoccerBall.proto"
+EXTERNPROTO "../protos/NaoV6.proto"
+
+WorldInfo {
+  optimalThreadCount 8
+  gpsCoordinateSystem "WGS84"
+}
+Viewpoint {
+  orientation 0.21273282921000103 -0.2230317006984371 -0.9513157224916822 4.709756421701265
+  position -1.9246914353449567 -7.1778714009221 4.023548339491097
+}
+DEF BALL RobocupSoccerBall {
+  translation 0.00572149 -0.0311733 0.0696782
+  rotation 0.23762249744042607 -0.20086420087920442 0.9503626263249902 -2.7593868892233897
+  name "RobocupSoccerBall"
+}
+TexturedBackground {
+  texture "stadium"
+}
+TexturedBackgroundLight {
+  castShadows FALSE
+}
+RobotstadiumSoccerField {
+  name "field"
+  frame1Color 0 0 1
+  frame2Color 1 0 0
+}
+DEF Red_Defender_2 NaoV6 {
+  translation -2.25 -1.5 0.33
+  rotation 0.06128337107899901 0.0380591820390161 0.9973945293070916 0.0365474
+  name "Red_Defender_2"
+  color 1 0 0
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Red_Striker NaoV6 {
+  translation -2.25 1.5 0.33
+  rotation 0.06128337107899901 0.0380591820390161 0.9973945293070916 0.0365474
+  name "Red_Defender_1"
+  color 1 0 0
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Black_Defender_2 NaoV6 {
+  translation 2.25 1.5 0.33
+  rotation 0.0006951580916247766 -0.001119440147546946 0.999999131804115 -3.1051353071795864
+  name "Black_Defender_2"
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit2"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Red_Striker NaoV6 {
+  hidden rotation_24 0 1 0 0.9600000001535741
+  hidden rotation_25 0 1 0 0.9599999986782977
+  hidden rotation_26 0 1 0 0.9599999994356034
+  hidden rotation_27 0 0.9999999999999999 0 0.9600000001541319
+  hidden rotation_28 0 1 0 0.959999998671436
+  hidden rotation_29 0 1 0 0.9599999994325183
+  hidden rotation_31 0 -1 0 0.9599999996412631
+  hidden rotation_36 0 0.9999999999999999 0 0.9600000001929438
+  hidden rotation_37 0 1 0 0.9599999986196633
+  hidden rotation_38 0 1 0 0.9599999994082294
+  hidden rotation_39 0 1 0 0.9600000001935517
+  hidden rotation_40 0 0.9999999999999999 0 0.9599999986130637
+  hidden rotation_41 0 1 0 0.9599999994050573
+  hidden rotation_43 0 -1 0 0.959999999625425
+  translation -0.864375 -0.0957779 0.43
+  rotation 0.06128337107899901 0.0380591820390161 0.9973945293070916 0.0365474
+  name "Red_Striker"
+  color 1 0 0
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Black_Keeper NaoV6 {
+  translation 4.5 0 0.33
+  rotation 0.0006955593612573427 -0.0011199989708482099 0.9999991308993625 -3.105140432529366
+  name "Black_Keeper"
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Red_Kepper NaoV6 {
+  translation -4.5 0 0.35
+  rotation 0.06124867629599114 0.038034185280291434 0.997397613994566 0.0365525
+  name "Red_Keeper"
+  color 1 0 0
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 2
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit2"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Black_Defender_1 NaoV6 {
+  translation 2.25 -1.5 0.33
+  rotation 0.0006951580916247766 -0.001119440147546946 0.999999131804115 -3.1051353071795864
+  name "Black_Defender_1"
+  controller "<none>"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit2"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Black_Striker NaoV6 {
+  translation 0.9 0 0.33
+  rotation 0.0006955593612573427 -0.0011199989708482099 0.9999991308993625 -3.105140432529366
+  name "Black_Striker"
+  controller "Main"
+  controllerArgs [
+    ""
+  ]
+  channel 1
+  bodySlot [
+    InertialUnit {
+      name "inertial_unit"
+    }
+    DEF robot_receiver Receiver {
+      name "robot_receiver"
+      channel 1
+    }
+  ]
+}
+DEF Super_Black NaoV6 {
+  translation 2.2482 3.31401 0.33
+  rotation 0.0009517903944162762 0.00206526085583181 -0.9999974143929784 1.53935
+  name "Super_Black"
+  controller "Supervisor"
+  supervisor TRUE
+  channel 1
+  bodySlot [
+    DEF supervisor_emitter Emitter {
+      name "supervisor_emitter"
+      channel 1
+    }
+  ]
+}
+DEF Super_Red NaoV6 {
+  translation -2.51858 3.21836 0.43
+  rotation 0.0009517903944162762 0.00206526085583181 -0.9999974143929784 1.53935
+  name "4(1)"
+  controller "Supervisor"
+  supervisor TRUE
+  channel 2
+  bodySlot [
+    DEF supervisor_emitter Emitter {
+      name "supervisor_emitter"
+      channel 1
+    }
+  ]
+}
