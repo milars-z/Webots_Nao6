@@ -1,5 +1,6 @@
 import struct
 import math
+import config as cfg
 
 class receiver:
     def __init__(self,Nao):
@@ -75,7 +76,7 @@ class receiver:
             except struct.error:
                 print("Received data size mismatch.")
                 return None, None, None, None, None, None, None
-        print("Warning!No new message received. detail:Receiver/get_all_positon")
+        print("Warning!No new message received. detail:Receiver/get_all_positon",robot_name)
         return None, None, None, None, None, None, None
 
 
@@ -129,6 +130,13 @@ class receiver:
         nearest_x = x1 + t * dx
         nearest_y = y1 + t * dy
 
-        dist = math.sqrt((x2 - nearest_x)**2 + (y2 - nearest_y)**2)
-        return dist <= threshold
+        dist = (x2 - nearest_x)**2 + (y2 - nearest_y)**2
+
+        #计算障碍物和球之间的距离，如果距离大于2倍的踢球最大距离还是可以踢球的
+        dist_ball_to_obs = ( x1 - x2 )**2 + ( y1 - y2 )**2
+
+        if ( dist <= threshold ** 2 ) and  (dist_ball_to_obs < ((2 * cfg.MAX_KICK_DIS)**2)):
+            return True
+        
+        return False
     

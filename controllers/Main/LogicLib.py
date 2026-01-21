@@ -44,7 +44,7 @@ class Logic:
         elif self.name == 'Red_Defender_2' or self.name == 'Black_Defender_2':
             self.robot_func = 'def'
         elif self.name == 'Black_Striker' or self.name == 'Red_Striker':
-            self.robot_func = 'stricker'
+            self.robot_func = 'striker'
         elif self.name == 'Black_Keeper' or self.name == 'Red_Keeper':
             self.robot_func = 'keeper'
         else: 
@@ -55,16 +55,11 @@ class Logic:
         #监督学习数据导入
         self.kick_data = []
         self.get_trainning_file(cfg.TRAINING_FILE_NAME)
-        self.kick_len = cfg.KICK_LEN
-
-        #目标击球点动态规划
-        #相关项目还在编写中
-        self.can_i_kick = [False] * self.kick_len
 
         #状态flag
         self.back_state_flag = cfg.BALL_IS_BACK
         #状态树整体状态flag
-        self.stricker_state = cfg.FIND_BACK_BALL
+        self.striker_state = cfg.FIND_BACK_BALL
 
         self.defender_state = cfg.DEFENDER_FALL_CHACK
 
@@ -91,6 +86,7 @@ class Logic:
             else:
                 return 'StandUpB'
         else :
+            
             obstacle_state = self.check_obstacle_in_path()
             if obstacle_state == True:
                 aim_x, aim_y = self.update_door_position()
@@ -98,34 +94,35 @@ class Logic:
                 pass
             #判断球是否出现大幅度移动（被干扰）如果出现则重新开始逻辑树
             if self.check_ball_move(cfg.BALL_IS_MOVE) == True:
-                self.stricker_state = cfg.FIND_BACK_BALL
+                self.striker_state = cfg.FIND_BACK_BALL
 
             #避障相关
             avoid_code = self.visionReviewer.get_robot_avoid_message()
             if avoid_code != None:
                 check_code = self.check_rob_obs(avoid_code,self.name)
                 #避障优先级较高，但是在精细踢球阶段不会避障
-                if (self.stricker_state != cfg.KICK_BALL) and (check_code != cfg.NO_OBS):
+                if (self.striker_state != cfg.KICK_BALL) and (check_code != cfg.NO_OBS):
                     path_state = self.avoid_robot(check_code)
                     return path_state
                 #由于代码复用，当自身为defender时一直需要避障，否则容易撞到自己人
-                if self.robot_func == 'atc':
+                if (self.robot_func == 'atc') and (check_code != cfg.NO_OBS):
                     path_state = self.avoid_robot(check_code)
                     return path_state
             
-            if self.stricker_state == cfg.FIND_BACK_BALL:
-                if STATE_CHECK: print('state 0')
+            if self.striker_state == cfg.FIND_BACK_BALL:
+                if STATE_CHECK: print('state 0',self.name)
                 path_state = self.find_back_ball()
-            if path_state == finish_state or self.stricker_state == cfg.CLOSE_TO_BALL:
-                if STATE_CHECK:print('state 1')
+            if path_state == finish_state or self.striker_state == cfg.CLOSE_TO_BALL:
+                if STATE_CHECK:print('state 1',self.name)
                 path_state = self.close_to_ball(aim_x,aim_y)
-            if path_state == finish_state or self.stricker_state == cfg.KICK_BALL:
-                if STATE_CHECK:print('state 2')
+            if path_state == finish_state or self.striker_state == cfg.KICK_BALL:
+                if STATE_CHECK:print('state 2',self.name)
                 path_state = self.kick_ball(aim_x,aim_y)
 
             if path_state == finish_state :
                 print('wrong!!!')
                 path_state = 'Hand_Wave'
+
             return path_state
         
 
@@ -142,29 +139,62 @@ class Logic:
         return self.visionReviewer.check_obstacle(self.team,self.door_x,self.door_y,cfg.OBSTACLE_THRESHOLD)
     
     #更新目标击球点
+    #V1.7更新
+    #用来动态规划可踢球点
+    #修改了障碍物判断，当障碍物过远时不会造成威胁
+    #该函数通过遍历所有无障碍的点，找到移动代价最小的点踢球，加快了进攻速度
+    #击球点距离机器人所在点的距离可以后续增加，这次修改主要让机器人旋转最小，旋转耗费的时间较多
     def update_door_position(self):
 
-        self.can_i_kick = [True] * self.kick_len
+        best_tx = 0
+        best_ty = 0
+        min_angle_change = math.pi
+        if_valid_pos = False
         is_red = (self.team == 'Red')
-        if self.robot_func == 'stricker':
-            priority_list = cfg.PRIORITY_LIST
-            passball_pos  = cfg.PASSBALL_POS
+
         if self.robot_func == 'atc':
-            priority_list = cfg.PRIORITY_LIST_DEF
-            passball_pos  = cfg.PASSBALL_POS_DEF
-        for idx, target_name in enumerate(priority_list):
-            raw_x, raw_y = passball_pos[target_name]
-            if is_red:
-                tx, ty = -raw_x, -raw_y
-            else:
-                tx, ty = raw_x, raw_y
-            if not self.visionReviewer.check_obstacle(self.team, tx, ty, cfg.OBSTACLE_THRESHOLD):
-                self.can_i_kick[idx] = False  
-                return tx, ty
+            p_list = cfg.PRIORITY_LIST_DEF
+            p_pos  = cfg.PASSBALL_POS_DEF
+        elif self.robot_func == 'striker':
+            p_list = cfg.PRIORITY_LIST
+            p_pos  = cfg.PASSBALL_POS
+        else:
+            p_list = cfg.PRIORITY_LIST
+            p_pos  = cfg.PASSBALL_POS
+            print("func_update_door_position: Illegal call!")
+
+        robot_angle = self.visionReviewer.get_robot_angle()
+        ball_x, ball_y = self.visionReviewer.get_ball_position()
+
+        if ball_x is not None :
+            for target_name in p_list:
+                raw_x, raw_y = p_pos[target_name]
+                if is_red:
+                    tx, ty = -raw_x, -raw_y
+                else:
+                    tx, ty = raw_x, raw_y
+                if not self.visionReviewer.check_obstacle(self.team, tx, ty, cfg.OBSTACLE_THRESHOLD):
+                    #如果为被阻挡，则计算代价，这里主要是想减少机器人的转向
+                    #计算该组坐标会导致的角度
+                    ideal_kick_angle = self.calculate_angle_to_ball(ball_x,ball_y,tx,ty)
+                    turn_diff = self.get_changed_angle(robot_angle, ideal_kick_angle)
+                    if min(min_angle_change,turn_diff) == turn_diff:
+                        min_angle_change = turn_diff
+                        best_tx = tx
+                        best_ty = ty
+                        if_valid_pos = True
+            if if_valid_pos:
+                return best_tx, best_ty
+        else:
+            print("func_update_door_position: cant get ball_x")
+
         print('Warning: No clear path found, using default priority target!')
-        default_name = cfg.PRIORITY_LIST[0]
-        dx, dy = cfg.PASSBALL_POS[default_name]
+        default_name = p_list[0]
+        dx, dy = p_pos[default_name]
         return (-dx, -dy) if is_red else (dx, dy)
+    
+
+
     
     #V1.6 新增避障
     #该函数解析avoid_code判断周围0.35m处是否有障碍
@@ -247,10 +277,10 @@ class Logic:
                     return state
                 else:
                     if(ball_y > robot_y):
-                        state = 'turn_left'
+                        state = 'sidestepleft'
                         return state
                     else:
-                        state = 'turn_right'
+                        state = 'sidestepright'
                         return state
             else:
                 self.back_state_flag = cfg.BALL_IS_NOT_BACK
@@ -262,10 +292,10 @@ class Logic:
                     return state
 
         else:
-            self.stricker_state = cfg.CLOSE_TO_BALL
+            self.striker_state = cfg.CLOSE_TO_BALL
             self.back_state_flag = cfg.BALL_IS_BACK
 
-        if self.stricker_state == cfg.CLOSE_TO_BALL:
+        if self.striker_state == cfg.CLOSE_TO_BALL:
             if self.check_angle(robot_angle,normal_angle,cfg.ANGLE_TOLERANCE) == False:
                 dis = math.sqrt((robot_x - ball_x)**2 + (robot_y - ball_y)**2)
                 if dis >cfg.SIDE_THRESHOLD:
@@ -276,7 +306,7 @@ class Logic:
                     state = self.change_angle_state(robot_angle,aim_angle)
                 return state
             else:
-                self.stricker_state = cfg.CLOSE_TO_BALL
+                self.striker_state = cfg.CLOSE_TO_BALL
         return finish_state
 
     #V1.5 将plan_path_to_ball函数拆分
@@ -311,7 +341,7 @@ class Logic:
                 
                 state = 'forward'
                 return state
-        self.stricker_state = cfg.KICK_BALL
+        self.striker_state = cfg.KICK_BALL
         return finish_state 
 
 
@@ -344,42 +374,44 @@ class Logic:
             if STATE_CHECK: print('已找到相关踢球数据,正在进行校对')
             dx = self.kick_data[idx][0]
             dy = self.kick_data[idx][1] 
-            
-            #优先对准角度
-            if self.check_angle(robot_angle,deg,cfg.ANGLE_TOLERANCE) == False:
-                state = self.change_angle_state(robot_angle,deg)
-                return state
-            dx_n = ball_x - robot_x
-            dy_n = ball_y - robot_y
-            if STATE_CHECK:print(f"dx:{dx},dy:{dy},nowdx:{dx_n},nowdy:{dy_n}")
-
-            if dx_n - dx > cfg.TOLERANCE_X_B:
-                state = 'back'
-                return state
-            if dx_n - dx < cfg.TOLERANCE_X_F:
-                state = 'forward'
-                return state
-            
-            if dy_n - dy < cfg.TOLERANCE_Y_L:
-                state = 'sidestepleft'
-                return state
-            if dy_n - dy > cfg.TOLERANCE_Y_R:
-                state = 'sidestepright'
-                return state
-
-            state = 'kickl'
-            return state
-                   
         else:
-            print("未找到合适的踢球数据,请补充,当前deg为",deg)
-            print("下面开始随机踢球")
+            if STATE_CHECK: print('未找到相关数据,已自动生成')
+            dx = 0.27 * math.cos(deg + 0.3)
+            dy = 0.27 * math.sin(deg + 0.3)
+            
+        #优先对准角度
+        if self.check_angle(robot_angle,deg,cfg.ANGLE_TOLERANCE) == False:
+            state = self.change_angle_state(robot_angle,deg)
+            return state
+        dx_n = ball_x - robot_x
+        dy_n = ball_y - robot_y
+        if STATE_CHECK:print(f"dx:{dx},dy:{dy},nowdx:{dx_n},nowdy:{dy_n}")
 
-            if self.check_angle(robot_angle,deg,cfg.ANGLE_TOLERANCE) == False:
-                state = self.change_angle_state(robot_angle,deg)
-                return state
-            else:
-                state = 'kickl'
+        if dx_n - dx > cfg.TOLERANCE_X_B:
+            state = 'back'
+            if self.team == 'Red':
+                state = 'forward'
+            return state
+        if dx_n - dx < cfg.TOLERANCE_X_F:
+            state = 'forward'
+            if self.team == 'Red':
+                state = 'back'
+            return state
+        
+        if dy_n - dy < cfg.TOLERANCE_Y_L:
+            state = 'sidestepleft'
+            if self.team == 'Red':
+                state = 'sidestepright'
+            return state
+        if dy_n - dy > cfg.TOLERANCE_Y_R:
+            state = 'sidestepright'
+            if self.team == 'Red':
+                state = 'sidestepleft'
+            return state
+
+        state = 'kickl'
         return state
+                   
 
     #-------------球位移检测
     #---------输入
@@ -520,17 +552,28 @@ class Logic:
         else:
             print("wrong!cant find file")
 
+    #动态规划踢球点调用
+    #--------------输入
+    #机器人的角度，目标角度
+    #--------------输出
+    #需要旋转的角度
+    def get_changed_angle(self,robot_angle,aim_angle):
+
+        adjust_ang = abs(robot_angle - aim_angle)
+        if adjust_ang > math.pi :
+            adjust_ang = 2*math.pi - adjust_ang
+        return adjust_ang
+
+
 ##################################################################################################
-##################################################################################################
-###############-----------------------------待开发区域-----------------############################
-##################################################################################################
+###############-----------------------------守门员逻辑-----------------############################
 ##################################################################################################
     def get_state_keeper(self):
 
         self.visionReviewer.update(self.name)
-        robot_x,robot_y,robot_z = self.reciever.get_robot_position()
-        ball_x,ball_y = self.reciever.get_ball_position()
-        robot_angle = self.reciever.get_robot_angle()
+        robot_x,robot_y,robot_z = self.visionReviewer.get_robot_position()
+        ball_x,ball_y = self.visionReviewer.get_ball_position()
+        robot_angle = self.visionReviewer.get_robot_angle()
 
         now_state = 'Hand_Wave'
 
@@ -542,29 +585,19 @@ class Logic:
 
         return now_state
     
+##################################################################################################
+###############-----------------------------后卫逻辑-----------------##############################
+##################################################################################################
     def get_state_defender(self):
 
-
         self.defender_state = cfg.DEFENDER_FALL_CHACK
-
-        self.visionReviewer.update(self.name)
-        robot_x,robot_y,robot_z = self.visionReviewer.get_robot_position()
-        ball_x,ball_y = self.visionReviewer.get_ball_position()
-        robot_angle = self.visionReviewer.get_robot_angle()
-
-        if (ball_x is None) or (robot_x is None):
-            state = 'Hand_Wave'
-            return state
-
         now_state = 'Hand_Wave'
-
-
 
         #根据队伍初始化每个机器人的边界
         #进攻型可以走到对面半场去
         #y不用管，不可能走出去
         #注意黑队是反的
-        if self.team == 'RED':
+        if self.team == 'Red':
             x_min = cfg.DEFENDER_MIN_LINE_R
             if self.robot_func == 'atc' :
                 x_max = -cfg.DEFENDER_MIN_LINE_R
@@ -577,7 +610,6 @@ class Logic:
             else:
                 x_max = cfg.DEFENDER_MAX_LINE
             
-
         #作为一个防御型的defender，需要做的事情就是在自己的半场待机，并且随时卡在球和球门之间的位置
         #首先需要写一个函数来找到这个点
         #已知球的位置，球门两边的位置，求三角形的内接圆心
@@ -586,6 +618,15 @@ class Logic:
         #如果两次变动的距离小于threshold则原地不动，如果到达了圆心则不进行避障。
         #设置的可接受范围挺大的，两次出现变动也不一定会动，这里少用一个变量
         if self.robot_func == 'def' :
+
+            self.visionReviewer.update(self.name)
+            robot_x,robot_y,robot_z = self.visionReviewer.get_robot_position()
+            ball_x,ball_y = self.visionReviewer.get_ball_position()
+            robot_angle = self.visionReviewer.get_robot_angle()
+
+            if (ball_x is None) or (robot_x is None):
+                state = 'Hand_Wave'
+                return state
             #跌倒起立
             fall_state = self.check_robot_fall()
             if fall_state == True:
@@ -635,13 +676,22 @@ class Logic:
                 else:
                     self.defender_state = cfg.DEFENDER_FALL_CHACK
                     if abs( aim_y - robot_y ) >cfg.DEFENDER_XY_THRESHOLD:
-                        if aim_y > robot_y: 
-                            now_state = 'sidestepleft'
-                        else: 
-                            now_state = 'sidestepright'   
-                        return now_state
+                        
+                        if self.team == 'Red':
+                            if aim_y > robot_y: 
+                                now_state = 'sidestepleft'
+                            else: 
+                                now_state = 'sidestepright'
+                            
+                            return now_state
+                        else:
+                            if aim_y > robot_y: 
+                                now_state = 'sidestepright'
+                            else: 
+                                now_state = 'sidestepleft'  
+                            return now_state
                     #在移动之前先判断自己的位置，不能超过自己所属的边界
-                    if self.team == 'red':
+                    if self.team == 'Red':
                         if robot_x < x_min :
                             now_state = 'Hand_Wave'
                             return now_state
@@ -649,11 +699,18 @@ class Logic:
                         if robot_x > x_min :
                             now_state = 'Hand_Wave'
                             return now_state
+                        
                     if abs( aim_x - robot_x ) >cfg.DEFENDER_XY_THRESHOLD:
-                        if aim_x > robot_x:
-                            now_state = 'forward'
-                        else :
-                            now_state = 'back'
+                        if self.team == 'Red':
+                            if aim_x > robot_x:
+                                now_state = 'forward'
+                            else :
+                                now_state = 'back'
+                        else:
+                            if aim_x > robot_x:
+                                now_state = 'back'
+                            else :
+                                now_state = 'forward'
                         return now_state
                     
 
@@ -661,10 +718,11 @@ class Logic:
             # 当球在对面半场的时候阻拦对方球员的防守
             # 不防守了，直接进攻，判断球与自家进攻手的距离，如果超过1m判断为被截断进攻，否则站在场边待机
 
-            #怎么实现换点踢球，可以直接使用stricker的整体逻辑，判断摔倒避障，球的方位，只需要把aim值修改即可
+            #怎么实现换点踢球，可以直接使用striker的整体逻辑，判断摔倒避障，球的方位，只需要把aim值修改即可
             #self.defender_atc_aim 应该在init初始化
             #PASSBALL_POS_DEF和优先级在config进行初始配置
         if self.robot_func == 'atc' :
+
             now_state = self.state_tree()
 
         return now_state

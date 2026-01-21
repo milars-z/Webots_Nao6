@@ -302,7 +302,7 @@ class SoccerSupervisor(Supervisor):
         self.get_nodes()
         while self.step(self.timestep) != -1:
             self.send_message()
-            #self.check_goal()
+            self.check_goal()
             self.ball_dis_cal()
 
 

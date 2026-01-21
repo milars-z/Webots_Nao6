@@ -103,44 +103,81 @@ DEFENDER_IN_POS = 2
 DEFENDER_POS_THRESHOLD = 0.5
 DEFENDER_XY_THRESHOLD = 0.3
 
-
-
-PRIORITY_LIST = ['goal_center', 
-                'goal_left', 'goal_right', 
-                'mid_left', 'mid_right',
-                'back_left', 'back_right',
-                'abandon']
-
-KICK_LEN = 8
+#最远踢球距离
+MAX_KICK_DIS = 1.0
 
 TRAINING_FILE_NAME = 'Lkick_data.csv'
 
+PRIORITY_LIST =['goal_c', 
+                'goal_l1', 'goal_r1', 
+                'goal_l2', 'goal_r2',
+                'goal_l3', 'goal_r3',
+                'area_c',
+                'area_l1', 'area_r1', 
+                'area_l2', 'area_r2',
+                'mid_atk_c',
+                'mid_atk_l', 'mid_atk_r',
+                'mid_edge_l', 'mid_edge_r',
+                'center_l','center_r',
+                'abandon']
+
 #传球判断相关
 PASSBALL_POS = {
-    'goal_center':(-4.5,0),
-    'goal_left':(-4.5,-1.5),
-    'goal_right':(-4.5,1.5),
-    'mid_left':(-3.25,-1.75),
-    'mid_right':(-3.25,1.75),
-    'back_left':(-2.25,-1.75),
-    'back_right':(-2.25,1.75),
-    'abandon':(4.5,-3)
+    'goal_c':    (-4.5,  0.0),
+    'goal_l1':   (-4.5, -0.4), 
+    'goal_r1':   (-4.5,  0.4),
+    'goal_l2':   (-4.5, -0.8), 
+    'goal_r2':   (-4.5,  0.8),
+    'goal_l3':   (-4.5, -1.2), 
+    'goal_r3':   (-4.5,  1.2),
+
+    'area_c':    (-3.8,  0.0),
+    'area_l1':   (-3.8, -1.5),
+    'area_r1':   (-3.8,  1.5),
+    'area_l2':   (-3.8, -2.5), 
+    'area_r2':   (-3.8,  2.5), 
+
+    'mid_atk_c': (-2.5,  0.0),
+    'mid_atk_l': (-2.5, -1.2),
+    'mid_atk_r': (-2.5,  1.2),
+    'mid_edge_l':(-2.5, -2.8), 
+    'mid_edge_r':(-2.5,  2.8),
+
+    'center_l':  (-1.0, -1.5),
+    'center_r':  (-1.0,  1.5),
+
+    'abandon':   ( 4.5, -3.0) 
 }
 
 #defender传球判断相关,设置多一点值给更多角度
-PRIORITY_LIST_DEF = ['midground_left', 'midground_right',
-                    'midground_midl', 'midground_midr', 
-                    'redground_left', 'redground_right',
-                    'deadline_left', 'deadline_right']
+PRIORITY_LIST_DEF =['fwd_deep_c', 
+                    'fwd_deep_l', 'fwd_deep_r', 
+                    'diag_l1', 'diag_r1',
+                    'diag_l2', 'diag_r2',
+                    'side_l1', 'side_r1',
+                    'side_l2', 'side_r2',
+                    'last_l', 'last_r',
+                    'deadline_l', 'deadline_r']
 
 PASSBALL_POS_DEF = {
-    'midground_left':(0,-3),
-    'midground_right':(0,3),
-    'midground_midl':(0,-1.5),
-    'midground_midr':(0,1.5),
-    'redground_left':(-2.25,-3),
-    'redground_right':(-2.25,3),
-    'deadline_left':(-4.5,-3),
-    'deadline_right':(-4.5,3),
+    'fwd_deep_c': (0.0,  0.0),
+    'fwd_deep_l': (0.0, -1.5),
+    'fwd_deep_r': (0.0,  1.5),
+
+    'diag_l1':    (1.0, -2.5),
+    'diag_r1':    (1.0,  2.5),
+    'diag_l2':    (2.5, -3.0),
+    'diag_r2':    (2.5,  3.0),
+
+    'side_l1':    (-2.0, -3.0),
+    'side_r1':    (-2.0,  3.0),
+    'side_l2':    (-3.5, -3.0),
+    'side_r2':    (-3.5,  3.0),
+
+    'last_l':     (-4.5, -2.0),
+    'last_r':     (-4.5,  2.0),
+    'deadline_l': (-4.5, -3.0),
+    'deadline_r': (-4.5,  3.0)
 }
+
 

@@ -48,6 +48,9 @@ class GaitController:
             'SideLeft_Loop': Motion('../../motions/SideLeft_Loop.motion'),
             'SideLeft_Stop': Motion('../../motions/SideLeft_Stop.motion'),
             'turn_left_180': Motion('../../motions/TurnLeft180.motion'),
+            'back_Start':Motion('../../motions/Backwards_Start.motion'),
+            'back_Loop':Motion('../../motions/Backwards_Loop.motion'),
+            'back_Stop':Motion('../../motions/Backwards_Stop.motion'),
         }
 
         self.motion_sum = len(self.motions)
@@ -85,6 +88,9 @@ class GaitController:
             1.84, #SideLeft_Loop
             1.48, #SideLeft_Stop
             9.00, #turnleft_180
+            0.96, #back_Start
+            0.80, #back_Loop
+            0.84, #back_Stop
         ]
 
         #获取index用
@@ -151,6 +157,16 @@ class GaitController:
                 new_state = 'SideLeft_Stop'
             elif self.last_state != 'sidestepleft' and  new_state == 'sidestepleft':
                 new_state = 'SideLeft_Start'
+
+            #Back dispatch
+            if self.last_state == 'back_Start'   and  new_state == 'back':
+                new_state = 'back_Loop'
+            elif self.last_state == 'back_Loop'   and  new_state == 'back':
+                new_state = 'back_Loop'
+            elif (self.last_state == 'back_Loop' or self.last_state == 'back_Start') and new_state != 'back':
+                new_state = 'back_Stop'
+            elif self.last_state != 'back' and  new_state == 'back':
+                new_state = 'back_Start'
 
             
             self.currentlyPlaying = self.motions[new_state]

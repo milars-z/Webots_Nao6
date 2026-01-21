@@ -33,8 +33,6 @@ class VisionReviewer:
         #处理避障
         self.avoid_flag = 0
 
-
-        
         self.iu = Nao.getDevice("inertial_unit")
         self.iu.enable(timestep)
         
