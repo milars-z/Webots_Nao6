@@ -165,7 +165,7 @@ class SoccerSupervisor(Supervisor):
                 #if "ball" not in name:
                 #    node.restartController()
 
-        print("--- 场上物体已复位 ---")
+        print("--- reset ---")
         self.reset_flag = 0
 
 
@@ -283,7 +283,7 @@ class SoccerSupervisor(Supervisor):
                 rotation_field  = self.striker_Black_node.getField("rotation")
                 self.rot        = rotation_field.getSFRotation()
                 self.angle = self.rot[3] 
-                print(f"检测到击球！开始测距...相对位置: dx={self.dx:.3f}, dy={self.dy:.3f},angle={self.angle:.3f}")
+                #print(f"检测到击球！开始测距...相对位置: dx={self.dx:.3f}, dy={self.dy:.3f},angle={self.angle:.3f}")
 
         elif self.kick_flag == 1:
             if speed < 0.02: 
@@ -292,7 +292,7 @@ class SoccerSupervisor(Supervisor):
                              (self.ball_y - self.ball_y_start)**2)**0.5
                 
                 if self.total_dis > 0.1: 
-                    print(f"球已停稳。踢球距离: {self.total_dis:.3f} 米")
+                    #print(f"球已停稳。踢球距离: {self.total_dis:.3f} 米")
                     self.save_to_csv(self.dx, self.dy, self.angle, self.total_dis)
         
         

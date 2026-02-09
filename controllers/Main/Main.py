@@ -27,11 +27,13 @@ class Robot():
         #V1.2根据名字调用不同代码
         #太过繁琐后期需修改
         if(self.robot_name == 'Black_Striker') or (self.robot_name == 'Red_Striker'):
+        #if(self.robot_name == 'Black_Striker') :
             while (NAO6_robot.step(timestep) != -1)&(current_step <self.total_steps) :
                 current_simulation_time = NAO6_robot.getTime()
                 current_step = int(current_simulation_time*1000/timestep)
                 #state = self.Nao_logic.find_state()
                 state = self.Nao_logic.state_tree()
+                #state = self.Nao_logic.zx_tese()
                 #state = self.Nao_logic.check_andgllll()
                 #state = 'kickl'
                 self.gait_ctrl.manage_state_(state)
@@ -52,10 +54,10 @@ class Robot():
 
 
 
-        # else:
-        #     while (NAO6_robot.step(timestep) != -1)&(current_step <self.total_steps) :
-        #         state = 'Hand_Wave'
-        #         self.gait_ctrl.manage_state_(state)
+        else:
+            while (NAO6_robot.step(timestep) != -1)&(current_step <self.total_steps) :
+                state = 'Hand_Wave'
+                self.gait_ctrl.manage_state_(state)
 
      
 Robot = Robot(NAO6_robot)

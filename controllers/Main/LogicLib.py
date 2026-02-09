@@ -63,6 +63,28 @@ class Logic:
 
         self.defender_state = cfg.DEFENDER_FALL_CHACK
 
+    def zx_tese(self):
+
+        path_state = 'Hand_Wave'
+        self.visionReviewer.update(self.name)
+
+        robot_x,robot_y,robot_z = self.visionReviewer.get_robot_position()
+        ball_x,ball_y = self.visionReviewer.get_ball_position()
+        robot_angle = self.visionReviewer.get_robot_angle()
+
+        if (ball_x is None) or (robot_x is None):
+            path_state = 'Hand_Wave'
+            return path_state
+
+        angle = self.calculate_angle_to_ball(robot_x,robot_y,ball_x,ball_y)
+        
+        if self.check_angle(robot_angle,angle,cfg.ANGLE_TOLERANCE) == False:
+                path_state = self.change_angle_state(robot_angle,angle)
+                return path_state
+        
+        else:
+            return path_state
+
    
     def state_tree(self):
 
@@ -378,6 +400,8 @@ class Logic:
             if STATE_CHECK: print('未找到相关数据,已自动生成')
             dx = 0.27 * math.cos(deg + 0.3)
             dy = 0.27 * math.sin(deg + 0.3)
+        dx = 0.27 * math.cos(deg + 0.3)
+        dy = 0.27 * math.sin(deg + 0.3)
             
         #优先对准角度
         if self.check_angle(robot_angle,deg,cfg.ANGLE_TOLERANCE) == False:
